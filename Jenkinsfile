@@ -10,7 +10,10 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Building $BUILD_NAME..'
+                echo 'Building ..'
+                sh 'make posix'
+                sh 'ant -buildfile ./Tools/jMAVSim/build.xml'
+                sh 'make posix jmavsim'
             }
         }
         stage('Test') {
