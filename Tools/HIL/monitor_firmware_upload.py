@@ -6,7 +6,7 @@ from subprocess import call, Popen
 from argparse import ArgumentParser
 import re
 
-def watch_serial(port, baudrate):     
+def monitor_firmware_upload(port, baudrate):     
     databits = serial.EIGHTBITS
     stopbits = serial.STOPBITS_ONE
     parity = serial.PARITY_NONE
@@ -21,9 +21,7 @@ def watch_serial(port, baudrate):
         if "NuttShell (NSH)" in serial_line:
             finished = 1
         time.sleep(0.05)
-    ser.close() 
-
-    # assert finished == 1, "NuttShell has never been loaded"
+    ser.close()
 
 def main():
     parser = ArgumentParser(description=__doc__)
@@ -31,7 +29,7 @@ def main():
     parser.add_argument("--baudrate", "-b", dest="baudrate", type=int, help="Mavlink port baud rate (default=57600)", default=57600)
     args = parser.parse_args()
 
-    watch_serial(args.device, args.baudrate)
+    monitor_firmware_upload(args.device, args.baudrate)
 
 if __name__ == "__main__":
    main()

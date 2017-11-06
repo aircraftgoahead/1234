@@ -28,7 +28,7 @@ pipeline {
                     'Monitoring (FTDI)': {
                         timeout(time: 120, unit: 'SECONDS') {
                             sh './Tools/HIL/reboot_device.sh FTDI'
-                            sh './Tools/HIL/watch_serial.py --device $FTDI_DEVICE --baudrate 57600'
+                            sh './Tools/HIL/monitor_firmware_upload.py --device $FTDI_DEVICE --baudrate 57600'
                         }
                     }
                 )   
