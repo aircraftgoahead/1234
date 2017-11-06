@@ -31,11 +31,13 @@ pipeline {
             steps {
                 parallel(
                     'Flashing (USB)': {
-                        sh './Tools/HIL/power_off.sh USB && sleep 0.5'
-                        sh './Tools/HIL/power_on.sh USB && sleep 2'
-                        sh './Tools/px_uploader.py --port $USB_DEVICE --baud-flightstack 115200 --baud-bootloader 115200 ./build/px4fmu-v4_default/nuttx_px4fmu-v4_default.px4'
-                        sh './Tools/HIL/power_off.sh USB && sleep 0.5'
-                        sh './Tools/HIL/power_on.sh USB && sleep 2'
+                        timeout(time: 60, unit: 'SECONDS') {
+                            sh './Tools/HIL/power_off.sh USB && sleep 0.5'
+                            sh './Tools/HIL/power_on.sh USB && sleep 2'
+                            sh './Tools/px_uploader.py --port $USB_DEVICE --baud-flightstack 115200 --baud-bootloader 115200 ./build/px4fmu-v4_default/nuttx_px4fmu-v4_default.px4'
+                            sh './Tools/HIL/power_off.sh USB && sleep 0.5'
+                            sh './Tools/HIL/power_on.sh USB && sleep 2'
+                        }
                     },
                     'Monitoring (FTDI)': {
                         timeout(time: 60, unit: 'SECONDS') {
