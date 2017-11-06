@@ -31,22 +31,33 @@ pipeline {
             steps {
                 parallel(
                     'Flashing (USB)': {
-                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 2'
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 0.5'
                         sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1 && sleep 2'
                         sh './Tools/px_uploader.py --port $USB_DEVICE --baud-flightstack 115200 --baud-bootloader 115200 ./build/px4fmu-v4_default/nuttx_px4fmu-v4_default.px4'
-                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 2'
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 0.5'
                         sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1 && sleep 2'
                     },
                     'Monitoring (FTDI)': {
                         timeout(time: 60, unit: 'SECONDS') {
-                            sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 0 && sleep 2'
+                            sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 0 && sleep 0.5'
                             sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 1 && sleep 2'
                             sh './Tools/HIL/watch_serial.py --device $FTDI_DEVICE --baudrate 57600'
                         }
                     }
                 )   
             }
-            
+        }
+
+        stage('Test') {
+            steps {
+                timeout(time: 60, unit: 'SECONDS') {
+                    sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 0 && sleep 0.5'
+                    sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 1 && sleep 2'
+                    sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 0.5'
+                    sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1 && sleep 2'
+                    sh './Tools/HIL/run_tests.py --device $FTDI_DEVICE'
+                }
+            }
         }
 
         // stage('Reboot Devices') {
