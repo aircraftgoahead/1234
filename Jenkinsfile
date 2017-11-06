@@ -29,29 +29,28 @@ pipeline {
 
         stage('Flash') {
             steps {
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0'
-                sh 'sleep 2'
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1'
-                sh 'sleep 2'
-                sh './Tools/px_uploader.py --port $USB_DEVICE --baud-flightstack 115200 --baud-bootloader 115200 ./build/px4fmu-v4_default/nuttx_px4fmu-v4_default.px4'
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0'
-                sh 'sleep 2'
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1'
-                sh 'sleep 2'
+                parallel(
+                    'Flash': {
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 2'
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1 && sleep 2'
+                        sh './Tools/px_uploader.py --port $USB_DEVICE --baud-flightstack 115200 --baud-bootloader 115200 ./build/px4fmu-v4_default/nuttx_px4fmu-v4_default.px4'
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0 && sleep 2'
+                        sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1 && sleep 2'
+                    },
+                    'Monitoring (FTDI)': {
+                        sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 0 && sleep 2'
+                        sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 1 && sleep 2'
+                        sh './Tools/HIL/watch_serial.py --device $FTDI_DEVICE --baudrate 57600'
+                    }
+                )
             }
         }
 
-        stage('Reboot Devices') {
-            steps {
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 0'
-                sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 0'
-                sh 'sleep 2'
-                sh '/hub-ctrl -b $USB_HUB_BUS -d $USB_HUB_DEVICE -P $USB_HUB_PORT -p 1'
-                sh '/hub-ctrl -b $FTDI_HUB_BUS -d $FTDI_HUB_DEVICE -P $FTDI_HUB_PORT -p 1'
-                sh 'sleep 2'
+        // stage('Reboot Devices') {
+        //     steps {
                 // sh './Tools/jmavsim_run.sh -q -d /dev/ttyACM0 -b 921600 -r 250'
-            }
-        }
+        //     }
+        // }
         // stage('Deploy') {
         //     when {
         //         expression {
